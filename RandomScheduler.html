@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Scheduler</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a href="https://github.com/akumajiin/Testing/blob/main/RandomScheduler.html" target="_blank" style="display:inline-block;margin:1em 0 0 1em;font-size:1.2em;font-weight:bold;color:#1565c0;text-decoration:underline;">Schedule</a>
+    <h1>Random Scheduler</h1>
+    <label for="namesInput">Enter 10 names (comma separated):</label>
+    <input type="text" id="namesInput" value="Frank, Annette, Daniel, Tessa, Janelle, misty, melinda, lina, brandon, tyler" size="60">
+    <button onclick="runScheduler()">Generate Schedule</button>
+    <div id="piles"></div>
+    <div id="output"></div>
+    <script>
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+        function splitIntoPiles(names) {
+            // Assumes names.length === 10
+            const shuffled = shuffle(names.slice());
+            return {
+                A: shuffled.slice(0, 4),
+                B: shuffled.slice(4, 8),
+                TCO: shuffled.slice(8, 10)
+            };
+        }
+        function displayPiles(piles) {
+            let html = '<h2>Piles</h2>';
+            html += `<div><strong>A:</strong> ${piles.A.join(', ')}</div>`;
+            html += `<div><strong>B:</strong> ${piles.B.join(', ')}</div>`;
+            html += `<div><strong>TCO:</strong> ${piles.TCO.join(', ')}</div>`;
+            document.getElementById('piles').innerHTML = html;
+        }
+        function runScheduler() {
+            const namesInput = document.getElementById('namesInput').value;
+            const names = namesInput.split(',').map(n => n.trim()).filter(n => n.length > 0);
+            if (names.length !== 10) {
+                document.getElementById('piles').innerHTML = '<span style="color:red">Please enter exactly 10 names.</span>';
+                document.getElementById('output').innerHTML = '';
+                return;
+            }
+            document.getElementById('piles').innerHTML = '';
+            const numberOfDays = 7;
+            const positionsPerDay = 10;
+            const nameUsage = {};
+            names.forEach(name => nameUsage[name] = 0);
+            let outputHtml = "";
+            const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            for (let day = 1; day <= numberOfDays; day++) {
+                // New random piles for each day
+                const piles = splitIntoPiles(names);
+                const dayOfWeek = daysOfWeek[(day - 1) % 7];
+                outputHtml += `<div class='day'>`;
+                outputHtml += `<div class='day-separator'><span class='day-label'>${dayOfWeek}</span></div>`;
+                outputHtml += `<div class='day-content'><strong>Day ${day}:</strong><br>`;
+                outputHtml += `<span style='color:#0074D9'><strong>A:</strong> ${piles.A.join(', ')}</span><br>`;
+                outputHtml += `<span style='color:#2ECC40'><strong>B:</strong> ${piles.B.join(', ')}</span><br>`;
+                outputHtml += `<span style='color:#FF851B'><strong>TCO:</strong> ${piles.TCO.join(', ')}</span><ul>`;
+                // Schedule logic (kept for compatibility, but can be omitted if only piles are needed)
+                let sortedNames = names.slice().sort((a, b) => nameUsage[a] - nameUsage[b]);
+                sortedNames = shuffle(sortedNames);
+                const selectedNames = sortedNames.slice(0, positionsPerDay);
+                selectedNames.forEach(name => {
+                    nameUsage[name]++;
+                    outputHtml += `<li>${name}</li>`;
+                });
+                outputHtml += "</ul></div>";
+            }
+            outputHtml += "<div class='summary'>Name usage summary:<ul>";
+            for (const name of names) {
+                outputHtml += `<li>${name}: ${nameUsage[name]} times</li>`;
+            }
+            outputHtml += "</ul></div>";
+            document.getElementById('output').innerHTML = outputHtml;
+        }
+        // Run once on load with default names
+        runScheduler();
+    </script>
+</body>
+</html>
